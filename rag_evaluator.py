@@ -1,7 +1,65 @@
 import json
+import time
 from rag_helper import RAGBase, SQLStringList
 from sqlite3 import OperationalError
-from sqlite_db import get_db_connection
+from db import get_db_connection
+from tqdm import tqdm
+
+
+def calc_price(usage):
+    input_price_per_million =  1.50
+    output_price_per_million = 9.00
+
+    input_cost = (usage.total_input_tokens / 1_000_000) * input_price_per_million
+    output_cost = (usage.total_output_tokens / 1_000_000) * output_price_per_million
+    total_cost = input_cost + output_cost
+
+    return {
+        "input_cost": input_cost,
+        "output_cost": output_cost,
+        "total_cost": total_cost,
+    }
+
+def llm_structured_response(llm_client, instructions, input, schema, model="gemini-3.5-flash",previous_interaction_id=None):
+
+    response = llm_client.interactions.create(
+        system_instruction=instructions,
+        model=model,
+        input=input,
+        response_format={
+            "type": "text",
+            "mime_type": "application/json",
+            "schema": schema
+        },
+        previous_interaction_id=previous_interaction_id
+        )
+    output = json.loads(response.output_text)
+    return output, response.usage
+
+def llm_structured_retry(
+        llm_client, 
+        instructions, 
+        input, 
+        schema, 
+        model="gemini-3.5-flash",
+        previous_interaction_id=None,
+        max_attempts=3
+):
+    for attempt in range(max_attempts):
+        try:
+            return llm_structured_response(
+                llm_client, 
+                instructions, 
+                input, 
+                schema, 
+                model="gemini-3.5-flash",
+                previous_interaction_id=previous_interaction_id
+            )
+        except Exception:
+            if attempt == max_attempts - 1:
+                raise
+            time.sleep(2 ** attempt)
+
 
 class RAGEvaluator(RAGBase):
     def __init__(
@@ -112,3 +170,20 @@ class RAGEvaluator(RAGBase):
     
         self.evaluation["valid_execution_rate"] = self.calculate_stat(self.is_valid)
         self.evaluation["execution_accuracy"] = self.calculate_stat(self.execution_accuracy_rate_list)
+
+def map_progress(pool, seq, f):
+    results = []
+
+    with tqdm(total=len(seq)) as progress:
+        futures = []
+
+        for el in seq:
+            future = pool.submit(f, el)
+            future.add_done_callback(lambda p: progress.update())
+            futures.append(future)
+
+        for future in futures:
+            result = future.result()
+            results.append(result)
+
+    return results

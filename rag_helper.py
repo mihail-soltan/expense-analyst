@@ -2,7 +2,7 @@ import json
 import pandas as pd
 from pydantic import BaseModel, Field
 from typing import List
-from sqlite_db import get_db_connection
+from db import get_db_connection
 
 INSTRUCTIONS = '''
 You are a financial assistant who analyses data related to expenses. 

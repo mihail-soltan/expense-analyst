@@ -2,7 +2,7 @@ import json
 import pandas as pd
 from pydantic import BaseModel, Field
 from typing import List
-from db import get_db_connection
+from db.db_init import get_sqlite_connection
 
 INSTRUCTIONS = '''
 You are a financial assistant who analyses data related to expenses. 
@@ -56,7 +56,7 @@ class RAGBase:
 
 
     def execute_query(self, query):
-        db_conn = get_db_connection()
+        db_conn = get_sqlite_connection()
         results_df = pd.read_sql(query, db_conn)
 
         results = results_df.to_dict(orient="records")

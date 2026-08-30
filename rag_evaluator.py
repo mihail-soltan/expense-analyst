@@ -2,7 +2,7 @@ import json
 import time
 from rag_helper import RAGBase, SQLStringList
 from sqlite3 import OperationalError
-from db import get_db_connection
+from db.db_init import get_sqlite_connection
 from tqdm import tqdm
 
 

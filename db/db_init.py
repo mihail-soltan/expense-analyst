@@ -21,7 +21,7 @@ create_expenses_table = """CREATE TABLE IF NOT EXISTS expenses (
                     )
                 """
 
-def get_sqlite_connection(path, uri=True):
+def get_sqlite_connection(path="file:expenses.db?mode=ro", uri=True):
     conn = sqlite3.connect(path, uri=uri)
     return conn
 
@@ -45,15 +45,14 @@ def init_sqlite_db(path):
 def init_pg_db(drop=False):
     conn = get_pg_connection()
     try:
-        if drop:
-            cur.execute("DROP TABLE IF NOT EXISTS conversations")
         with conn.cursor() as cur:
+            if drop:
+                cur.execute("DROP TABLE IF EXISTS conversations")
             cur.execute("""
                         CREATE TABLE conversations (
                         id SERIAL PRIMARY KEY,
                         question TEXT NOT NULL,
                         answer TEXT NOT NULL,
-                        course TEXT NOT NULL,
                         model TEXT NOT NULL,
                         instructions TEXT NOT NULL,
                         prompt TEXT NOT NULL,
@@ -92,8 +91,8 @@ def init_feedback_table():
 
 if __name__ == '__main__':
     try:
-        # init_sqlite_db("file:expenses.db?mode=ro")
-        init_pg_db()
+        # init_sqlite_db("file:expenses.db")
+        init_pg_db(drop=True)
         init_feedback_table()
         print("Postgres DB initialized")
     except Exception as e:

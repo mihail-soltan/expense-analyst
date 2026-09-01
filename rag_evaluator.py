@@ -6,20 +6,6 @@ from db.db_init import get_sqlite_connection
 from tqdm import tqdm
 
 
-def calc_price(usage):
-    input_price_per_million =  1.50
-    output_price_per_million = 9.00
-
-    input_cost = (usage.total_input_tokens / 1_000_000) * input_price_per_million
-    output_cost = (usage.total_output_tokens / 1_000_000) * output_price_per_million
-    total_cost = input_cost + output_cost
-
-    return {
-        "input_cost": input_cost,
-        "output_cost": output_cost,
-        "total_cost": total_cost,
-    }
-
 def llm_structured_response(llm_client, instructions, input, schema, model="gemini-3.5-flash",previous_interaction_id=None):
 
     response = llm_client.interactions.create(

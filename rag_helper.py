@@ -38,6 +38,28 @@ class SQLString(BaseModel):
 class SQLStringList(BaseModel):
     queries: List[SQLString]
 
+def calc_price(usage):
+    input_price_per_million =  1.50
+    output_price_per_million = 9.00
+
+    input_cost = (usage.total_input_tokens / 1_000_000) * input_price_per_million
+    output_cost = (usage.total_output_tokens / 1_000_000) * output_price_per_million
+    total_cost = input_cost + output_cost
+
+    return {
+        "input_cost": input_cost,
+        "output_cost": output_cost,
+        "total_cost": total_cost,
+    }
+
+def calc_total_price(usages):
+    total_cost = 0.0
+
+    for usage in usages:
+        cost = calc_price(usage)
+        total_cost = total_cost + cost["total_cost"]
+
+    return total_cost
 class RAGBase:
     def __init__(
       self,
@@ -135,3 +157,8 @@ class RAGBase:
                 current_interaction["output"] = new_interaction.output_text
 
         return current_interaction
+
+    def total_cost(self):
+        return calc_total_price(self.usages)
+
+#TODO: add log_response

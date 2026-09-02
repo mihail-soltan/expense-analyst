@@ -1,8 +1,14 @@
-import json
-import pandas as pd
-from pydantic import BaseModel, Field
-from typing import List
 from db.db_init import get_sqlite_connection
+from dataclasses import dataclass, field
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import List
+
+import time
+import json
+
+import pandas as pd
+
 
 INSTRUCTIONS = '''
 You are a financial assistant who analyses data related to expenses. 
@@ -25,6 +31,20 @@ CREATE TABLE IF NOT EXISTS expenses (
                     category TEXT NOT NULL
                     )
 '''
+
+@dataclass
+class LLMCallRecord:
+    model: str
+    prompt: str
+    instructions: str
+    answer: str
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    response_time: float
+    cost: float
+    timestamp: datetime = field(default_factory=datetime.now)
+
 class Question(BaseModel):
     question: str = Field(description="The question a user may ask in regards to their expense records")
     ground_truth_sql: str = Field(description="The valid SQLITE SQL query that can be used to retrieve the requested information from the database")
@@ -75,7 +95,7 @@ class RAGBase:
         self.tools=tools
         self.usages = []
         self.last_usage = None
-
+        self.last_call: LLMCallRecord = None
 
     def execute_query(self, query):
         db_conn = get_sqlite_connection()
@@ -89,6 +109,7 @@ class RAGBase:
         input_messages = []
         input_messages.extend(input)
 
+        start_time = time.time()
         response = self.llm_client.interactions.create(
             system_instruction=self.instructions,
             model=self.model,
@@ -96,6 +117,8 @@ class RAGBase:
             tools=self.tools, 
             previous_interaction_id=previous_interaction_id
         )
+        response_time = time.time() - start_time
+        self._log_response(input_messages, response, response_time)
         self.usages.append(response.usage)
         self.last_usage = response.usage
         
@@ -161,4 +184,22 @@ class RAGBase:
     def total_cost(self):
         return calc_total_price(self.usages)
 
-#TODO: add log_response
+
+    def _log_response(self, prompt, response, response_time):
+        usage = response.usage
+        cost = calc_price(usage)
+
+        call_record = LLMCallRecord(
+            model=self.model,
+            prompt=prompt,
+            instructions=self.instructions,
+            answer=response.output_text,
+            prompt_tokens=usage.total_input_tokens,
+            completion_tokens=usage.total_output_tokens,
+            total_tokens=usage.total_tokens,
+            response_time=response_time,
+            cost=cost["total_cost"]
+        )
+    
+        print(call_record)
+        self.last_call = call_record

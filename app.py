@@ -16,15 +16,15 @@ if st.button("Ask"):
                 ]
         answer = assistant.rag(input_messages)
         st.success("Completed!")
-        st.write(answer)
+        st.write(answer["output"])
 
         record = assistant.last_call
         st.write(f"Response time: {record.response_time:.2f}s")
         st.write(f"Prompt tokens: {record.prompt_tokens}")
         st.write(f"Completion tokens: {record.completion_tokens}")
-        st.write(f"Cost: ${record.cost:.4f}")
+        st.write(f"Cost: ${record.cost}")
 
-        conversation_id = save_conversation(record, user_input, "llm-zoomcamp")
+        conversation_id = save_conversation(record, user_input)
         st.session_state.conversation_id = conversation_id
 
         relevance, explanation = evaluate_relevance(user_input, answer)

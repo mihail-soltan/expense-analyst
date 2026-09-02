@@ -1,5 +1,6 @@
 from datetime import datetime
 from db.db_init import get_pg_connection, DB_TIMEZONE
+from psycopg.types.json import Json
 
 def save_conversation(record, question):
     timestamp = datetime.now(DB_TIMEZONE)
@@ -14,7 +15,7 @@ def save_conversation(record, question):
                     prompt_tokens, completion_tokens, total_tokens,
                     response_time, cost, timestamp
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 RETURNING id
                 """,
@@ -23,7 +24,7 @@ def save_conversation(record, question):
                     record.answer,
                     record.model,
                     record.instructions,
-                    record.prompt,
+                    Json(record.prompt),
                     record.prompt_tokens,
                     record.completion_tokens,
                     record.total_tokens,
@@ -34,6 +35,8 @@ def save_conversation(record, question):
             )
             conversation_id = cur.fetchone()[0]
         conn.commit()
+    except Exception as e:
+        print(e)
     finally:
         conn.close()
     return conversation_id

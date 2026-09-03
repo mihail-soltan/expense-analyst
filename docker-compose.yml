@@ -12,6 +12,14 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - expense_analyst_network
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - expense_analyst_network
 networks:
   expense_analyst_network:
     driver: bridge
@@ -19,3 +27,8 @@ networks:
 volumes:
   pgdata:
     driver: local
+  grafana_data:
+    driver: local
+
+
+

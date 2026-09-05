@@ -1,6 +1,7 @@
 from datetime import datetime
-from db.db_init import get_pg_connection, DB_TIMEZONE
+from db.db_init import get_pg_connection, get_sqlite_connection, DB_TIMEZONE
 from psycopg.types.json import Json
+import pandas as pd
 
 def save_conversation(record, question):
     timestamp = datetime.now(DB_TIMEZONE)
@@ -63,3 +64,16 @@ def save_feedback(conversation_id, source, relevance=None,
         conn.commit()
     finally:
         conn.close()
+
+def save_expenses_to_sqlite(csv_path):
+    conn = get_sqlite_connection("file:expenses.db")
+    records = pd.read_csv(csv_path, skip_blank_lines=True).dropna(how="all")
+    records.columns=["timestamp","purchase_date","item","amount","category"]
+    try:
+        records.to_sql("expenses",con=conn, schema="expenses", index=False, if_exists="delete_rows")
+        conn.commit()
+    except Exception as e:
+        print(records.head())
+        print("Failed to save to schema: ", e)
+    finally:
+            conn.close()

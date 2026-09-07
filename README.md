@@ -12,7 +12,7 @@ Users upload their expense data (CSV), which is ingested into a relational datab
 
 ## 🏗️ Architecture & Technologies
 
-* **LLM:** Google Gemini (`gemini-1.5-flash` / `gemini-1.5-pro`) via `google-genai`.
+* **LLM:** Google Gemini (`gemini-3.5-flash`) via `google-genai`.
 * **Knowledge Base (Agent Data):** SQLite (Read-Only URI sandboxed during evaluation).
 * **Monitoring & Feedback DB:** PostgreSQL.
 * **Orchestration / Interface:** Streamlit (UI) & Python.

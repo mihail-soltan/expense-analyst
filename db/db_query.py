@@ -27,106 +27,120 @@ def row_to_record(row):
 ###### Expense stats
 def get_monthly_total_spending_trend():
     conn = get_sqlite_connection()
+    cur = conn.cursor()
     try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                WITH formatted_expenses AS 
-                (SELECT amount, 
-                    SUBSTR(purchase_date, -4) || '-' || 
-                    SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' || 
-                    SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) AS formatted_date FROM expenses) 
-                SELECT strftime('%Y-%m', formatted_date) AS month, ROUND(SUM(amount), 2) AS total_spending FROM formatted_expenses 
-                GROUP BY month
-                ORDER BY month;
-                """
-            )
-            rows = cur.fetchall()
-            return rows
+        cur.execute(
+            """
+            WITH formatted_expenses AS 
+            (SELECT amount, 
+                SUBSTR(purchase_date, -4) || '-' || 
+                SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' || 
+                SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) AS formatted_date FROM expenses) 
+            SELECT strftime('%Y-%m', formatted_date) AS month, ROUND(SUM(amount), 2) AS total_spending FROM formatted_expenses 
+            GROUP BY month
+            ORDER BY month;
+            """
+        )
+        rows = cur.fetchall()
+        return rows
     finally:
         conn.close()
 
 def get_weekly_total_spending_trend():
     conn = get_sqlite_connection()
+    cur = conn.cursor()
     try:
-        with conn.cursor() as cur:
-            cur.execute("""
-            WITH formatted_expenses AS 
-            (SELECT amount, 
-                SUBSTR(purchase_date, -4) || '-' || SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' || SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) AS formatted_date FROM expenses)
-                SELECT strftime('%Y-%W', formatted_date) AS week, 
-                ROUND(SUM(amount), 2) AS total_spending
-                FROM formatted_expenses
-                GROUP BY week
-                ORDER BY week;
-            """)
-            rows = cur.fetchall()
-            return rows
+        cur.execute("""
+        WITH formatted_expenses AS 
+        (SELECT amount, 
+            SUBSTR(purchase_date, -4) || '-' || SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' || SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) AS formatted_date FROM expenses)
+            SELECT strftime('%Y-%W', formatted_date) AS week, 
+            ROUND(SUM(amount), 2) AS total_spending
+            FROM formatted_expenses
+            GROUP BY week
+            ORDER BY week;
+        """)
+        rows = cur.fetchall()
+
+        return rows
+    
     finally:
         conn.close()
 
 def get_monthly_spending_breakdown_by_category():
     conn = get_sqlite_connection()
+    cur = conn.cursor()
     try:
-        with conn.cursor() as cur:
-            cur.execute("""
-                WITH formatted_expenses AS 
-                    (SELECT 
-                        amount, 
-                        category, 
-                        SUBSTR(purchase_date, -4) || '-' 
-                        || SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' 
-                        || SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) 
-                    AS formatted_date FROM expenses) 
-
-                SELECT 
-                    strftime('%Y-%m', formatted_date) AS month, 
+       
+        cur.execute("""
+            WITH formatted_expenses AS 
+                (SELECT 
+                    amount, 
                     category, 
-                    ROUND(SUM(amount), 2) AS total_spending 
-                FROM formatted_expenses 
-                GROUP BY month, category 
-                ORDER BY month, total_spending DESC;
-            """)
+                    SUBSTR(purchase_date, -4) || '-' 
+                    || SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' 
+                    || SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) 
+                AS formatted_date FROM expenses) 
+
+            SELECT 
+                strftime('%Y-%m', formatted_date) AS month, 
+                category, 
+                ROUND(SUM(amount), 2) AS total_spending 
+            FROM formatted_expenses 
+            GROUP BY month, category 
+            ORDER BY month, total_spending DESC;
+        """)
+        rows = cur.fetchall()
+        
+        return rows
     finally:
             conn.close()
 
 def get_overall_category_expense_proportions():
     conn = get_sqlite_connection()
+    cur = conn.cursor()
     try:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT 
-                    category, 
-                    ROUND(SUM(amount), 2) AS total_spending, 
-                    ROUND(100.0 * SUM(amount) / (SELECT SUM(amount) FROM expenses), 2) AS percentage 
-                FROM expenses 
-                GROUP BY category 
-                ORDER BY total_spending DESC;
-                """)
+       
+        cur.execute("""
+            SELECT 
+                category, 
+                ROUND(SUM(amount), 2) AS total_spending, 
+                ROUND(100.0 * SUM(amount) / (SELECT SUM(amount) FROM expenses), 2) AS percentage 
+            FROM expenses 
+            GROUP BY category 
+            ORDER BY total_spending DESC;
+            """)
+        rows = cur.fetchall()
+        
+        return rows
     finally:
         conn.close()
 
 def get_transaction_frequency_vs_avg_spend_size_by_month():
     conn = get_sqlite_connection()
+    cur = conn.cursor()
     try:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    WITH formatted_expenses 
-                        AS (SELECT 
-                                amount, 
-                                SUBSTR(purchase_date, -4) || '-' 
-                                || SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' 
-                                || SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) AS formatted_date 
-                            FROM expenses) 
+            
+        cur.execute("""
+            WITH formatted_expenses 
+                AS (SELECT 
+                        amount, 
+                        SUBSTR(purchase_date, -4) || '-' 
+                        || SUBSTR('0' || SUBSTR(purchase_date, 1, INSTR(purchase_date, '/') - 1), -2) || '-' 
+                        || SUBSTR('0' || SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1, INSTR(SUBSTR(purchase_date, INSTR(purchase_date, '/') + 1), '/') - 1), -2) AS formatted_date 
+                    FROM expenses) 
 
-                    SELECT 
-                        strftime('%Y-%m', formatted_date) AS month,
-                        COUNT(*) AS transaction_count, 
-                        ROUND(AVG(amount), 2) AS avg_transaction_amount 
-                    FROM formatted_expenses 
-                    GROUP BY month 
-                    ORDER BY month;
-                    """)
+            SELECT 
+                strftime('%Y-%m', formatted_date) AS month,
+                COUNT(*) AS transaction_count, 
+                ROUND(AVG(amount), 2) AS avg_transaction_amount 
+            FROM formatted_expenses 
+            GROUP BY month 
+            ORDER BY month;
+            """)
+        rows = cur.fetchall()
+        
+        return rows
     finally:
         conn.close()
     #Transaction Frequency vs. Average Spend Size by Month
@@ -134,21 +148,22 @@ def get_transaction_frequency_vs_avg_spend_size_by_month():
 
 def get_conversations(limit=10):
     conn = get_pg_connection()
+    cur = conn.cursor()
     try:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT id, question, answer, model,
-                       instructions, prompt,
-                       prompt_tokens, completion_tokens, total_tokens,
-                       response_time, cost, timestamp
-                FROM conversations
-                ORDER BY timestamp DESC
-                LIMIT %s
-                """,
-                (limit,),
-            )
-            rows = cur.fetchall()
+        
+        cur.execute(
+            """
+            SELECT id, question, answer, model,
+                   instructions, prompt,
+                   prompt_tokens, completion_tokens, total_tokens,
+                   response_time, cost, timestamp
+            FROM conversations
+            ORDER BY timestamp DESC
+            LIMIT %s
+            """,
+            (limit,),
+        )
+        rows = cur.fetchall()
     finally:
         conn.close()
 

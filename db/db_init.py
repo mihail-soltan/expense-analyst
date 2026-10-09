@@ -8,7 +8,7 @@ from datetime import datetime
 load_dotenv()
 
 DB_TIMEZONE = datetime.now().astimezone().tzinfo
-print(f'Using timezone: {DB_TIMEZONE}')
+# print(f'Using timezone: {DB_TIMEZONE}')
 
 expenses_db = "expenses.db"
 create_expenses_table = """CREATE TABLE IF NOT EXISTS expenses (

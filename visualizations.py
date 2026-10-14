@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -15,6 +16,9 @@ class Visualizer:
         self.monthly_spending_breakdown_by_category=monthly_spending_breakdown_by_category
         self.overall_category_expense_proportions=overall_category_expense_proportions
         self.transaction_frequency_vs_avg_spend_size_by_month=transaction_frequency_vs_avg_spend_size_by_month
+        
+        if not os.path.exists('figures'):
+            os.makedirs('figures', exist_ok=True)
 
     def convert_to_df(self, query_result, columns_list):
         df = pd.DataFrame(query_result)

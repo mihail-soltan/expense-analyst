@@ -1,4 +1,6 @@
+import os
 import sys
+import time
 from pathlib import Path
 
 # Add project root to path
@@ -19,6 +21,7 @@ from rag_helper import RAGBase
 from dotenv import load_dotenv
 from google import genai
 import markdown
+import schedule
 
 load_dotenv()
 
@@ -71,10 +74,16 @@ files_to_attach = [
     plot_transaction_frequency_vs_avg_spend_size_by_month
 ]
 
-if __name__ == "__main__":
+def job(email_recipient):
     print("--------------Generating report--------------")
     output = assistant.llm(input_messages)
     html = markdown.markdown(output.output_text)
-    email_recipient = input("Please enter an email address: ")
     print("--------------Sending Email--------------")
     send_monthly_email(html, email_recipient, files_to_attach)
+    
+if __name__ == "__main__":
+    print(os.getenv("EMAIL_RECIPIENT"))
+    schedule.every(4).friday.do(job, email_recipient=os.getenv("EMAIL_RECIPIENT"))
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

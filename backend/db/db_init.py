@@ -21,7 +21,7 @@ create_expenses_table = """CREATE TABLE IF NOT EXISTS expenses (
                     )
                 """
 
-def get_sqlite_connection(path="file:expenses.db?mode=ro", uri=True):
+def get_sqlite_connection(path="file:/home/mihail/projects/expense-analyst/expenses.db?mode=ro", uri=True):
     conn = sqlite3.connect(path, uri=uri)
     return conn
 

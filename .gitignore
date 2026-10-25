@@ -16,3 +16,5 @@ data/*.csv
 
 /figures
 notebook.ipynb
+
+er_diagram.pdf

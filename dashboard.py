@@ -1,7 +1,7 @@
 import streamlit as st
 from dataclasses import asdict
 import pandas as pd
-from db.db_query import get_conversations, get_stats, get_relevance_stats, get_user_feedback_stats
+from backend.db.db_query import get_conversations, get_stats, get_relevance_stats, get_user_feedback_stats
 
 st.title("Expense Analyst Dashboard")
 

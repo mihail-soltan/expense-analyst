@@ -1,8 +1,8 @@
 import json
 import time
-from rag_helper import RAGBase, SQLStringList
+from backend.services.rag_helper import RAGBase, SQLStringList
 from sqlite3 import OperationalError
-from db.db_init import get_sqlite_connection
+from backend.db.db_init import get_sqlite_connection
 from tqdm import tqdm
 
 

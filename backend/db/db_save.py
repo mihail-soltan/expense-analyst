@@ -1,5 +1,5 @@
 from datetime import datetime
-from db.db_init import get_pg_connection, get_sqlite_connection, DB_TIMEZONE
+from backend.db.db_init import get_pg_connection, get_sqlite_connection, DB_TIMEZONE
 from psycopg.types.json import Json
 import pandas as pd
 

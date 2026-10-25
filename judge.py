@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Literal
 from google import genai
 from dotenv import load_dotenv
-from rag_evaluator import llm_structured_retry
+from backend.services.rag_evaluator import llm_structured_retry
 
 class RelevanceVerdict(BaseModel):
     relevance: Literal["NON_RELEVANT", "PARTLY_RELEVANT", "RELEVANT"]

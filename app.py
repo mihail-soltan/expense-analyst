@@ -1,6 +1,6 @@
 import streamlit as st
-from assistant import create_assistant
-from db.db_save import save_conversation, save_feedback, save_expenses_to_sqlite
+from backend.services.assistant import create_assistant
+from backend.db.db_save import save_conversation, save_feedback, save_expenses_to_sqlite
 from judge import evaluate_relevance
 
 assistant = create_assistant()

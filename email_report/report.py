@@ -7,7 +7,7 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from db.db_query import (
+from backend.db.db_query import (
     get_monthly_total_spending_trend, 
     get_weekly_total_spending_trend, 
     get_monthly_spending_breakdown_by_category, 
@@ -16,7 +16,7 @@ from db.db_query import (
 )
 from visualizations import Visualizer
 from email_report.email_utils import send_monthly_email
-from rag_helper import RAGBase
+from backend.services.rag_helper import RAGBase
 
 from dotenv import load_dotenv
 from google import genai

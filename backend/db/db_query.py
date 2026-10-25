@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from db.db_init import get_pg_connection, get_sqlite_connection
-from rag_helper import LLMCallRecord
+from backend.db.db_init import get_pg_connection, get_sqlite_connection
+from backend.services.rag_helper import LLMCallRecord
 
 @dataclass
 class Stats:

@@ -11,9 +11,13 @@ dependencies = [
     "markdown>=3.11",
     "matplotlib>=3.11.2",
     "pandas>=3.0.5",
-    "psycopg[binary]>=3.3.4",
+    "psycopg[c]>=3.3.6",
     "python-dotenv>=1.2.2",
     "schedule>=1.2.2",
-    "streamlit>=1.63.0",
     "tqdm>=4.70.0",
+]
+
+[dependency-groups]
+dev = [
+    "streamlit>=1.66.1",
 ]

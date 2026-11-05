@@ -3,8 +3,8 @@ import sys
 from dotenv import load_dotenv
 from google import genai
 
-from services.rag_helper import RAGBase
-from utils.tools import sql_function
+from .rag_helper import RAGBase
+from utils.llm_tools import sql_function
 
 tools = [{"type": "function", **sql_function}]
 

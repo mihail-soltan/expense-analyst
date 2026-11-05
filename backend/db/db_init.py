@@ -10,7 +10,6 @@ load_dotenv()
 DB_TIMEZONE = datetime.now().astimezone().tzinfo
 # print(f'Using timezone: {DB_TIMEZONE}')
 
-expenses_db = "expenses.db"
 create_expenses_table = """CREATE TABLE IF NOT EXISTS expenses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT NOT NULL,
@@ -88,6 +87,7 @@ def init_feedback_table():
         conn.commit()
     finally:
         conn.close()
+
 
 if __name__ == '__main__':
     try:

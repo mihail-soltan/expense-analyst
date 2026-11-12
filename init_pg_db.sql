@@ -1,3 +1,5 @@
+CREATE EXTENSION pgcrypto;
+
 CREATE TABLE users (
     user_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -95,6 +97,35 @@ CREATE TABLE feedback (
     timestamp TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
+
+-- CREATES DEFAULT WORKSPACE WHEN NEW USER IS INSERTED
+CREATE OR REPLACE FUNCTION create_workspace()  
+RETURNS TRIGGER AS $create_workspace$ 
+	BEGIN
+		INSERT INTO workspaces(owner_id, name) VALUES (new.user_id, 'default_workspace');
+		RETURN NEW;
+	END;
+$create_workspace$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER workspace_trigger
+AFTER INSERT ON users
+FOR EACH ROW EXECUTE FUNCTION create_workspace();
+------------------------------------------------------
+
+-- ADD WORKSPACE OWNER AS MEMBER
+CREATE OR REPLACE FUNCTION add_wksp_owner_as_member()
+RETURNS TRIGGER AS $add_wksp_owner_as_member$ 
+	BEGIN
+		INSERT INTO workspace_members(workspace_id, user_id) VALUES (new.workspace_id, new.owner_id);
+		RETURN NEW;
+	END;
+$add_wksp_owner_as_member$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER add_wksp_owner_as_member_trg
+AFTER INSERT ON workspaces
+FOR EACH ROW EXECUTE FUNCTION add_wksp_owner_as_member();
+-------------------------------------------------------
+
 INSERT INTO users(
     username,
     email,
@@ -102,17 +133,5 @@ INSERT INTO users(
 ) VALUES (
     'admin',
     'admin@example.com',
-    '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8' -- SHA256 hash for 'password', very original 
+    crypt('password', gen_salt('bf', 8))
 );
-
-INSERT INTO workspaces(
-	name,
-	owner_id
-)
-(SELECT 'default_workspace', user_id FROM users WHERE username='admin');
-
-INSERT INTO workspace_members(
-	workspace_id,
-	user_id
-)
-(SELECT workspace_id, owner_id FROM workspaces WHERE name = 'default_workspace');

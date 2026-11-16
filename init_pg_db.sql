@@ -56,7 +56,6 @@ CREATE TABLE categories (
     deleted_at TIMESTAMP
 );
 
-
 CREATE TABLE incomes (
     income_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id INTEGER NOT NULL,
@@ -135,3 +134,94 @@ INSERT INTO users(
     'admin@example.com',
     crypt('password', gen_salt('bf', 8))
 );
+
+-- POLICIES
+CREATE POLICY workspace_expenses_policy
+    ON expenses
+    TO app_user
+    USING (
+        workspace_id = NULLIF(current_setting('rls.workspace_id', true), '')::integer
+        
+        AND EXISTS (
+            SELECT 1
+            FROM workspace_members
+            WHERE workspace_members.workspace_id = expenses.workspace_id
+            AND workspace_members.user_id  = NULLIF(current_setting('rls.user_id', true), '')::integer
+        )
+    );
+
+CREATE POLICY workspace_incomes_policy
+    ON incomes
+    TO app_user
+    USING (
+        workspace_id = NULLIF(current_setting('rls.workspace_id', true), '')::integer
+
+        AND EXISTS (
+            SELECT 1
+            FROM workspace_members
+            WHERE workspace_members.workspace_id = incomes.workspace_id
+            AND workspace_members.user_id  = NULLIF(current_setting('rls.user_id', true), '')::integer
+        )
+    );
+
+CREATE POLICY workspace_conversations_policy
+    ON conversations
+    TO app_user
+    USING (
+        workspace_id = NULLIF(current_setting('rls.workspace_id', true), '')::integer
+
+        AND EXISTS (
+            SELECT 1
+            FROM workspace_members
+            WHERE workspace_members.workspace_id = conversations.workspace_id
+            AND workspace_members.user_id  = NULLIF(current_setting('rls.user_id', true), '')::integer
+        )
+    );
+
+CREATE POLICY workspace_categories_policy
+    ON categories
+    TO app_user
+    USING (
+        workspace_id = NULLIF(current_setting('rls.workspace_id', true), '')::integer
+
+        AND EXISTS (
+            SELECT 1
+            FROM workspace_members
+            WHERE workspace_members.workspace_id = categories.workspace_id
+            AND workspace_members.user_id  = NULLIF(current_setting('rls.user_id', true), '')::integer
+        )
+    );
+
+CREATE POLICY user_workspaces_policy
+    ON workspaces
+    TO app_user
+    USING (
+        EXISTS (
+            SELECT 1
+            FROM workspace_members
+            WHERE workspace_members.workspace_id = workspaces.workspace_id
+            AND workspace_members.user_id  = NULLIF(current_setting('rls.user_id', true), '')::integer
+        )
+    );
+
+CREATE POLICY workspace_members_policy
+    ON workspace_members
+    TO app_user
+    USING (
+        workspace_id = NULLIF(current_setting('rls.workspace_id', true), '')::integer
+    );
+
+
+ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE incomes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workspace_members ENABLE ROW LEVEL SECURITY;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON expenses TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON incomes TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON categories TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON conversations TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON workspaces TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON workspace_members TO app_user;

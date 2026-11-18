@@ -9,7 +9,7 @@ async def authenticate_user(conn, username, password):
     try:
         async with conn.cursor() as cur:
             await cur.execute(
-                "SELECT user_id, username, email, password_hash FROM users WHERE username = %s", 
+                "SELECT user_id, username, email, password_hash FROM get_user_for_auth(%s)", 
                 (username,)
             )
             result = await cur.fetchone()
@@ -17,7 +17,7 @@ async def authenticate_user(conn, username, password):
                 return None
             
             result_dict: User = {
-                "id": result[0],
+                "user_id": result[0],
                 "username": result[1],
                 "email": result[2],
                 "hashed_password": result[3]

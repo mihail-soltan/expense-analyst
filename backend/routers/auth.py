@@ -33,7 +33,7 @@ async def login_for_access_token(
                             )
     access_token_expires = timedelta(minutes=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES))
     access_token = create_access_token(
-        subject=user["email"],
+        subject=user["user_id"],
         expires_delta=access_token_expires
     )
     refresh_token = create_refresh_token(subject=user["email"])

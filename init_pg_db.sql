@@ -211,6 +211,12 @@ CREATE POLICY workspace_members_policy
         workspace_id = NULLIF(current_setting('rls.workspace_id', true), '')::integer
     );
 
+CREATE POLICY users_policy
+	ON users
+	TO app_user
+	USING (
+		user_id = NULLIF(current_setting('rls.user_id', true), '')::integer
+	)
 
 ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE incomes ENABLE ROW LEVEL SECURITY;
@@ -218,6 +224,7 @@ ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workspaces ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workspace_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON expenses TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON incomes TO app_user;
@@ -225,3 +232,22 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON categories TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON conversations TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON workspaces TO app_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON workspace_members TO app_user;
+
+CREATE OR REPLACE FUNCTION get_user_for_auth(p_username TEXT)
+RETURNS TABLE (
+    user_id INTEGER,
+    username TEXT,
+    email TEXT,
+    password_hash TEXT
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+    SELECT user_id, username, email, password_hash
+    FROM users
+    WHERE username = p_username;
+$$;
+
+REVOKE ALL ON FUNCTION get_user_for_auth(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION get_user_for_auth(TEXT) TO app_user;

@@ -8,12 +8,13 @@ from utils.llm_tools import sql_function
 
 tools = [{"type": "function", **sql_function}]
 
-def create_assistant():
+def create_assistant(conn):
     load_dotenv()
   
     return RAGBase(
         llm_client=genai.Client(),
-        tools=tools
+        tools=tools,
+        conn=conn
     )
 
 if __name__ == "__main__":

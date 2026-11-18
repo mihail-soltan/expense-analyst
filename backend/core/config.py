@@ -4,8 +4,8 @@ import dotenv
 dotenv.load_dotenv()
 
 class Settings():
-    DB_USER = os.getenv("POSTGRES_USER")
-    DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    DB_USER = os.getenv("APP_DB_USER")
+    DB_PASSWORD = os.getenv("APP_DB_PASSWORD")
     DB_HOST = os.getenv("DB_HOST")
     # DB_HOST = "0.0.0.0"
     DB_PORT = os.getenv("DB_PORT")

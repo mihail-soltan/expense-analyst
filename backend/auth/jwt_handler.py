@@ -1,50 +1,44 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
-from jose import jwt
+import jwt
 from core.config import settings
 
 def create_access_token(
     subject: str, expires_delta: Optional[timedelta] = None
 ) -> str:
-    """
-    Create JWT access token
-    """
+    """create JWT access token"""
+    now = datetime.now(timezone.utc)
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
-        
+        expire = now + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = now + timedelta(minutes=int(settings.ACCESS_TOKEN_EXPIRE_MINUTES))
+
     to_encode = {
         "sub": str(subject),
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
+        "iat": now,
+        "token_type": "access",
     }
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
-    return encoded_jwt
 
 def create_refresh_token(subject: str) -> str:
-    """
-    Create JWT refresh token
-    """
-    expire = datetime.now(timezone.utc) + timedelta(days=int(settings.REFRESH_TOKEN_EXPIRE_DAYS))
+    """create JWT refresh token"""
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(days=int(settings.REFRESH_TOKEN_EXPIRE_DAYS))
     to_encode = {
         "sub": str(subject),
         "exp": expire,
-        "iat": datetime.now(timezone.utc),
-        "token_type": "refresh"
+        "iat": now,
+        "token_type": "refresh",
     }
-    encoded_jwt = jwt.encode(
+    return jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
-    return encoded_jwt
 
 def decode_token(token: str) -> Dict[str, Any]:
-    """
-    Decode JWT token
-    """
-    payload = jwt.decode(
+    """decode and verify JWT token"""
+    return jwt.decode(
         token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
     )
-    return payload

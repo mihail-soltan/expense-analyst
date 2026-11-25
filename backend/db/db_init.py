@@ -28,8 +28,8 @@ def get_pg_connection():
     return psycopg.connect(
         host=os.getenv("POSTGRES_HOST", "localhost"),
         dbname=os.getenv("POSTGRES_DB", "expense_analyst"),
-        user=os.getenv("POSTGRES_USER", "user"),
-        password=os.getenv("POSTGRES_PASSWORD", "password")
+        user=os.getenv("APP_DB_USER", "user"),
+        password=os.getenv("APP_DB_PASSWORD", "password")
     )
 
 def init_sqlite_db(path):

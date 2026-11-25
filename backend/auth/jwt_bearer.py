@@ -3,7 +3,7 @@ from datetime import datetime
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from jose import jwt, JWTError
+from jwt.exceptions import PyJWTError
 from pydantic import ValidationError
 from typing import Optional, List
 from schemas.token import TokenPayload
@@ -30,7 +30,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
             )
         return token_data.sub
     
-    except (JWTError, ValidationError):
+    except (PyJWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Could not validate credentials",

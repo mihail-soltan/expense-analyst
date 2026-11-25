@@ -13,9 +13,10 @@ dependencies = [
     "pandas>=3.0.5",
     "passlib[bcrypt]>=1.7.4",
     "psycopg[c,pool]>=3.3.6",
+    "pyjwt>=2.15.1",
     "python-dotenv>=1.2.2",
-    "python-jose[cryptography]>=3.5.0",
     "schedule>=1.2.2",
+    "sqlalchemy>=2.1.8",
     "tqdm>=4.70.0",
 ]
 

@@ -251,3 +251,85 @@ $$;
 
 REVOKE ALL ON FUNCTION get_user_for_auth(TEXT) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION get_user_for_auth(TEXT) TO app_user;
+
+
+-- AUTH
+
+CREATE TABLE refresh_tokens (
+    token_hash TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE POLICY refresh_tokens_policy
+    ON refresh_tokens
+    TO app_user
+    USING (
+        user_id = NULLIF(current_setting('rls.user_id', true), '')::integer
+    )
+    WITH CHECK (
+        user_id = NULLIF(current_setting('rls.user_id', true), '')::integer
+    );
+
+ALTER TABLE refresh_tokens ENABLE ROW LEVEL SECURITY;
+
+GRANT SELECT, INSERT, UPDATE ON refresh_tokens TO app_user;
+
+CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
+
+CREATE OR REPLACE FUNCTION rotate_refresh_token(
+    p_old_token_hash TEXT,
+    p_new_token_hash TEXT,
+    p_new_expires_at TIMESTAMPTZ
+)
+RETURNS TABLE (
+    user_id INTEGER,
+    username VARCHAR(50),
+    email VARCHAR(50),
+    status TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+    v_record RECORD;
+BEGIN
+    SELECT rt.user_id, rt.expires_at, rt.revoked, u.username, u.email
+    INTO v_record
+    FROM refresh_tokens rt
+    JOIN users u ON u.user_id = rt.user_id
+    WHERE rt.token_hash = p_old_token_hash
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RETURN QUERY SELECT NULL::INTEGER, NULL::TEXT, NULL::TEXT, 'invalid'::TEXT;
+        RETURN;
+    END IF;
+
+    -- if an already-revoked token is used, revoke ALL tokens for this user
+    IF v_record.revoked THEN
+        UPDATE refresh_tokens SET revoked = TRUE WHERE refresh_tokens.user_id = v_record.user_id;
+        RETURN QUERY SELECT NULL::INTEGER, NULL::TEXT, NULL::TEXT, 'reused'::TEXT;
+        RETURN;
+    END IF;
+
+    IF v_record.expires_at < NOW() THEN
+        RETURN QUERY SELECT NULL::INTEGER, NULL::TEXT, NULL::TEXT, 'expired'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Mark old token as revoked and insert the rotated replacement
+    UPDATE refresh_tokens SET revoked = TRUE WHERE token_hash = p_old_token_hash;
+
+    INSERT INTO refresh_tokens (token_hash, user_id, expires_at)
+    VALUES (p_new_token_hash, v_record.user_id, p_new_expires_at);
+
+    RETURN QUERY SELECT v_record.user_id, v_record.username, v_record.email, 'ok'::TEXT;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION rotate_refresh_token(TEXT, TEXT, TIMESTAMPTZ) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION rotate_refresh_token(TEXT, TEXT, TIMESTAMPTZ) TO app_user;

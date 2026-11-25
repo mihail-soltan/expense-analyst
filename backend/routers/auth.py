@@ -101,9 +101,8 @@ async def refresh_access_token(
     )
     new_refresh_token = create_refresh_token(
         subject=user_id_str,
-        expires_delta=timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS),
     )
-    new_expires_at = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    new_expires_at = datetime.now(timezone.utc) + timedelta(days=int(settings.REFRESH_TOKEN_EXPIRE_DAYS))
 
     async with conn.cursor() as cur:
         await cur.execute(

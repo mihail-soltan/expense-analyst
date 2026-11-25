@@ -286,8 +286,8 @@ CREATE OR REPLACE FUNCTION rotate_refresh_token(
 )
 RETURNS TABLE (
     user_id INTEGER,
-    username TEXT,
-    email TEXT,
+    username VARCHAR(50),
+    email VARCHAR(50),
     status TEXT
 )
 LANGUAGE plpgsql
